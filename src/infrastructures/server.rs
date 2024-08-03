@@ -1,31 +1,16 @@
-use actix_web::{get, App, HttpResponse, HttpServer, Responder};
+use actix_web::{App, HttpServer};
+use actix_web::web::ServiceConfig;
+use crate::infrastructures::routes;
 
-#[get("/")]
-async fn hello() -> impl Responder {
-    HttpResponse::Ok().body("Hello world!")
+pub async fn run(port: &str) -> std::io::Result<()> {
+    let listen_address: String = format!("0.0.0.0:{}", port);
+
+    HttpServer::new(move || {
+        App::new().configure(move |cfg: &mut ServiceConfig| routes::setup_routing(cfg))
+    })
+    .bind(&listen_address)?
+    .run()
+    .await
 }
 
-pub struct Server {
-    pub port: String,
-}
-
-impl Server {
-    pub fn new(port: String) -> Self {
-        Server {
-            port,
-        }
-    }
-
-    pub async fn run(&self) -> std::io::Result<()> {
-        let listen_address = format!("0.0.0.0:{}", self.port);
-
-        HttpServer::new(|| {
-            App::new()
-                .service(hello)
-        })
-        .bind(&listen_address)?
-        .run()
-        .await
-    }
-}
 
